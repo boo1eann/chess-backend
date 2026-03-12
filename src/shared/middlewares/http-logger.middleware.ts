@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Request } from 'express';
 import type { Logger } from 'pino';
 import { pinoHttp, type Options } from 'pino-http';
-import { AppError } from '../errors/AppError';
+import { AppError } from '@/shared/errors/AppError';
 
 const SILENT_PATHS = new Set([
   '/health',
