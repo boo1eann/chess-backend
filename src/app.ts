@@ -15,7 +15,7 @@ export function createApp(logger: Logger): Application {
 
   app.get('/test-error', (req, _res, next) => {
     try {
-      throw new AppError({ code: 'VALIDATION_FAILED', context: req.context });
+      throw new AppError({ code: 'VALIDATION_FAILED', context: req.context, userAction: 'test' });
     } catch (error) {
       next(error);
     }

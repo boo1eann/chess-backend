@@ -16,16 +16,19 @@ const SILENT_PATHS = new Set([
 export function httpLoggerMiddleware(logger: Logger) {
   const options: Options = {
     logger,
+    wrapSerializers: false,
     genReqId: (req) => req.id ?? 'unknown',
     /* 
 			как примерно работает
 			const level = options.customLogLevel(req, res, err);
     	logger[level](...)
 		*/
-    customLogLevel(_req: IncomingMessage, res: ServerResponse, err?: Error | undefined) {
-      if (err instanceof AppError && !err.isOperational) return 'fatal';
-      if (err || (res.statusCode && res.statusCode >= 500)) return 'error';
+    customLogLevel(_req, res: ServerResponse<IncomingMessage>, err) {
+      const error = err || res.err;
+      if (error instanceof AppError && !error.isOperational) return 'fatal';
+      if (res.statusCode && res.statusCode >= 500) return 'error';
       if (res.statusCode && res.statusCode >= 400) return 'warn';
+      if (err) return 'error'; // сетевая ошибка без statusCode
       return 'info';
     },
 
@@ -72,7 +75,6 @@ export function httpLoggerMiddleware(logger: Logger) {
           statusCode: res.statusCode,
         };
       },
-      // кастомный serializer для err — вызывает toLogEntry() если AppError
       err(err) {
         if (err instanceof AppError) {
           return err.toLogEntry();
