@@ -2,6 +2,7 @@ import http from 'node:http';
 import { createApp } from './app';
 import { config } from './config';
 import { initLogger } from './shared/lib/logger';
+import { PostgresClient } from './shared/database/PostgresClient';
 
 const logger = initLogger({
   serviceName: 'my-api',
@@ -14,7 +15,10 @@ const logger = initLogger({
 });
 
 async function bootstrap(): Promise<void> {
-  const app = createApp(logger);
+  const db = new PostgresClient(logger);
+  await db.connect();
+
+  const app = createApp(logger, db);
   const httpServer = http.createServer(app);
 
   httpServer.listen(config.port, () => {

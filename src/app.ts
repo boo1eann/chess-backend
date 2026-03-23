@@ -4,8 +4,9 @@ import { httpLoggerMiddleware } from './shared/middlewares/http-logger.middlewar
 import { errorHandler } from './shared/middlewares/error-handler.middleware';
 import type { Logger } from 'pino';
 import { AppError } from '@/shared/errors/AppError';
+import type { PostgresClient } from './shared/database/PostgresClient';
 
-export function createApp(logger: Logger): Application {
+export function createApp(logger: Logger, db: PostgresClient): Application {
   const app = express();
 
   app.use(json({ limit: '10mb' }));

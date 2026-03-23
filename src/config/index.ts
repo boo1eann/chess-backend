@@ -35,7 +35,12 @@ export const config = {
   isTest: process.env.NODE_ENV === 'test',
 
   db: {
-    url: required('DATABASE_URL'),
+    host: required('DB_HOST'),
+    port: optionalNumber('DB_PORT', 5432),
+    name: required('DB_NAME'),
+    user: required('DB_USER'),
+    password: required('DB_PASSWORD'),
+    max: optionalNumber('DB_POOL_SIZE', 20),
   },
 
   jwt: {
