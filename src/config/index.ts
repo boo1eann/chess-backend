@@ -37,7 +37,7 @@ export const config = {
   db: {
     host: required('DB_HOST'),
     port: optionalNumber('DB_PORT', 5432),
-    name: required('DB_NAME'),
+    database: required('DB_NAME'),
     user: required('DB_USER'),
     password: required('DB_PASSWORD'),
     max: optionalNumber('DB_POOL_SIZE', 20),
