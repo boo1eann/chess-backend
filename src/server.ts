@@ -23,6 +23,6 @@ async function bootstrap(): Promise<void> {
 }
 
 bootstrap().catch((err) => {
-  logger.fatal('Fatal error during bootstrap:', err);
+  logger.fatal({ err }, 'Fatal error during bootstrap');
   process.exit(1);
 });
