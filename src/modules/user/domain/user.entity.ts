@@ -1,3 +1,5 @@
+import { verifyPassword } from '@/shared/security/password';
+
 export class User {
   constructor(
     public readonly id: string,
@@ -69,6 +71,15 @@ export class User {
     this.lastLoginIp = ip;
 
     this.resetLoginAttempts();
+  }
+
+  getPasswordHash(): string | null {
+    return this.passwordHash;
+  }
+
+  async verifyPassword(plainPassword: string): Promise<boolean> {
+    if (!this.passwordHash) return false;
+    return await verifyPassword(this.passwordHash, plainPassword);
   }
 
   static fromDb(row: any): User {

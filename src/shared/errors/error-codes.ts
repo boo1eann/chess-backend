@@ -19,6 +19,8 @@ export const ErrorCode = {
   AUTH_TOKEN_EXPIRED: 'AUTH_TOKEN_EXPIRED',
   AUTH_TOKEN_INVALID: 'AUTH_TOKEN_INVALID',
   AUTH_UNAUTHORIZED: 'AUTH_UNAUTHORIZED',
+  AUTH_ACCOUNT_BANNED: 'AUTH_ACCOUNT_BANNED',
+  AUTH_ACCOUNT_DISABLED: 'AUTH_ACCOUNT_DISABLED',
 } as const;
 
 export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -133,6 +135,18 @@ export const ERROR_DEFAULTS: Record<
     statusCode: 401,
     severity: 'low',
     message: 'Authentication required',
+    retryable: false,
+  },
+  AUTH_ACCOUNT_BANNED: {
+    statusCode: 401,
+    severity: 'low',
+    message: 'Account banned',
+    retryable: false,
+  },
+  AUTH_ACCOUNT_DISABLED: {
+    statusCode: 401,
+    severity: 'low',
+    message: 'Account disabled',
     retryable: false,
   },
 };

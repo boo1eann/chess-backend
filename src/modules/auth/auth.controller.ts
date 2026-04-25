@@ -14,4 +14,15 @@ export class AuthController {
       data: result,
     });
   });
+
+  login = asyncHandler(async (req, res) => {
+    const userAgent = req.headers['user-agent'] ?? null;
+    const ip = req.ip ?? null;
+    const result = await this.authService.login(req.body, { userAgent, ip });
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  });
 }
