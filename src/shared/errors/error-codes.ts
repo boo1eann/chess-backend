@@ -9,8 +9,16 @@ export const ErrorCode = {
 
   // Validation
   VALIDATION_FAILED: 'VALIDATION_FAILED',
-  VALIDATION_MISSING_FIELD: 'VALIDATION_MISSING_FIELD',
-  VALIDATION_INVALID_TYPE: 'VALIDATION_INVALID_TYPE',
+
+  // Auth
+  AUTH_EMAIL_TAKEN: 'AUTH_EMAIL_TAKEN',
+  AUTH_USERNAME_TAKEN: 'AUTH_USERNAME_TAKEN',
+  AUTH_INVALID_CREDENTIALS: 'AUTH_INVALID_CREDENTIALS',
+  AUTH_EMAIL_NOT_VERIFIED: 'AUTH_EMAIL_NOT_VERIFIED',
+  AUTH_ACCOUNT_LOCKED: 'AUTH_ACCOUNT_LOCKED',
+  AUTH_TOKEN_EXPIRED: 'AUTH_TOKEN_EXPIRED',
+  AUTH_TOKEN_INVALID: 'AUTH_TOKEN_INVALID',
+  AUTH_UNAUTHORIZED: 'AUTH_UNAUTHORIZED',
 } as const;
 
 export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -73,16 +81,58 @@ export const ERROR_DEFAULTS: Record<
     message: 'Validation failed',
     retryable: false,
   },
-  VALIDATION_MISSING_FIELD: {
-    statusCode: 400,
+
+  // Auth
+  AUTH_EMAIL_TAKEN: {
+    statusCode: 409,
     severity: 'low',
-    message: 'Required field missing',
+    message: 'Email is already registered',
     retryable: false,
   },
-  VALIDATION_INVALID_TYPE: {
-    statusCode: 400,
+  AUTH_USERNAME_TAKEN: {
+    statusCode: 409,
     severity: 'low',
-    message: 'Invalid data type',
+    message: 'Username is already taken',
+    retryable: false,
+  },
+  AUTH_INVALID_CREDENTIALS: {
+    statusCode: 401,
+    severity: 'low',
+    message: 'Invalid email or password',
+    retryable: false,
+    userAction: 'Check your credentials and try again',
+  },
+  AUTH_EMAIL_NOT_VERIFIED: {
+    statusCode: 403,
+    severity: 'low',
+    message: 'Email is not verified',
+    retryable: false,
+    userAction: 'Please verify your email address',
+  },
+  AUTH_ACCOUNT_LOCKED: {
+    statusCode: 423,
+    severity: 'medium',
+    message: 'Account is locked due to too many failed attempts',
+    retryable: true,
+    userAction: 'Try again later or contact support',
+  },
+  AUTH_TOKEN_EXPIRED: {
+    statusCode: 401,
+    severity: 'low',
+    message: 'Authentication token has expired',
+    retryable: false,
+    userAction: 'Please sign in again',
+  },
+  AUTH_TOKEN_INVALID: {
+    statusCode: 401,
+    severity: 'low',
+    message: 'Authentication token is invalid',
+    retryable: false,
+  },
+  AUTH_UNAUTHORIZED: {
+    statusCode: 401,
+    severity: 'low',
+    message: 'Authentication required',
     retryable: false,
   },
 };

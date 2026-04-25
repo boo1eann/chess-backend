@@ -3,8 +3,9 @@ import { requestContextMiddleware } from './shared/middlewares/request-context.m
 import { httpLoggerMiddleware } from './shared/middlewares/http-logger.middleware';
 import { errorHandler } from './shared/middlewares/error-handler.middleware';
 import type { Logger } from 'pino';
-import { AppError } from '@/shared/errors/AppError';
 import type { PostgresClient } from './shared/database/PostgresClient';
+import { config } from './config';
+import { createAuthRouter } from './modules/auth/auth.routes';
 
 export function createApp(logger: Logger, db: PostgresClient): Application {
   const app = express();
@@ -14,13 +15,15 @@ export function createApp(logger: Logger, db: PostgresClient): Application {
   app.use(requestContextMiddleware());
   app.use(httpLoggerMiddleware(logger));
 
-  app.get('/test-error', (req, _res, next) => {
-    try {
-      throw new AppError({ code: 'VALIDATION_FAILED', context: req.context, userAction: 'test' });
-    } catch (error) {
-      next(error);
-    }
-  });
+  // app.get('/test-error', (req, _res, next) => {
+  //   try {
+  //     throw new AppError({ code: 'VALIDATION_FAILED', context: req.context, userAction: 'test' });
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // });
+
+  app.use(`${config.apiPrefix}/auth`, createAuthRouter(db));
 
   app.use(errorHandler());
 

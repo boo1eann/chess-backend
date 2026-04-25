@@ -28,7 +28,7 @@ export class AppError extends Error {
 
     super(message, { cause: options.cause });
 
-    this.name = 'AppError';
+    this.name = this.constructor.name;
     this.code = options.code;
     this.statusCode = defaults.statusCode;
     this.severity = options.severity ?? defaults.severity;
@@ -39,7 +39,7 @@ export class AppError extends Error {
 
     this.isOperational = this.statusCode < 500;
 
-    Error.captureStackTrace(this, AppError);
+    Error.captureStackTrace(this, new.target);
   }
 
   toLogEntry(): Record<string, unknown> {
@@ -63,8 +63,21 @@ export class AppError extends Error {
 export class ValidationError extends AppError {
   public readonly errors: ValidationFieldError[];
 
-  constructor(errors: ValidationFieldError[]) {
-    super({ code: ErrorCode.VALIDATION_FAILED });
+  constructor(errors: ValidationFieldError[], context?: RequestContext) {
+    super({ code: ErrorCode.VALIDATION_FAILED, context });
     this.errors = errors;
+  }
+}
+
+export class AuthError extends AppError {
+  constructor(
+    code: ErrorCodeType,
+    options?: {
+      message?: string;
+      cause?: Error;
+      context?: RequestContext;
+    }
+  ) {
+    super({ code, ...options });
   }
 }
