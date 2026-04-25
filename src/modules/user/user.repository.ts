@@ -1,6 +1,8 @@
 import type { PostgresClient } from '@/shared/database/PostgresClient';
 import { User } from './domain/user.entity';
 import type { CreateUserInput } from './user.types';
+import { isUniqueViolation } from '@/shared/errors/postgres';
+import { AuthError } from '@/shared/errors/AppError';
 
 export class UserRepository {
   constructor(private readonly db: PostgresClient) {}
@@ -19,13 +21,23 @@ export class UserRepository {
 
   // Принимаем НЕ entity, а данные
   async create(data: CreateUserInput): Promise<User> {
-    const result = await this.db.query(
-      `INSERT INTO users (email, username, password_hash)
+    try {
+      const result = await this.db.query(
+        `INSERT INTO users (email, username, password_hash)
      VALUES ($1, $2, $3)
      RETURNING *`,
-      [data.email, data.username, data.passwordHash]
-    );
+        [data.email, data.username, data.passwordHash]
+      );
 
-    return User.fromDb(result.rows[0]);
+      return User.fromDb(result.rows[0]);
+    } catch (err) {
+      if (isUniqueViolation(err, 'users_email_key')) {
+        throw new AuthError('AUTH_EMAIL_TAKEN', { cause: err });
+      }
+      if (isUniqueViolation(err, 'users_username_key')) {
+        throw new AuthError('AUTH_USERNAME_TAKEN', { cause: err });
+      }
+      throw err;
+    }
   }
 }

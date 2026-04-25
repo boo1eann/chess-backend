@@ -1,6 +1,7 @@
 import { type DatabaseConfig, getDatabaseConfig } from '@/config/database.config';
 import { Pool, type PoolClient, type QueryResult, type QueryResultRow } from 'pg';
 import type { Logger } from 'pino';
+import { isPgError } from '../errors/postgres';
 
 export class PostgresClient {
   private pool: Pool;
@@ -39,7 +40,14 @@ export class PostgresClient {
       this.logger.debug({ text, duration, rows: result.rowCount }, 'Executed query');
       return result;
     } catch (err) {
-      this.logger.error({ text, err }, 'Query error');
+      const duration = Date.now() - start;
+      if (isPgError(err) && err.code?.startsWith('23')) {
+        // Это не сбой БД, это юзер прислал плохие данные → debug
+        this.logger.debug({ text, duration, code: err.code }, 'Query rejected by constraint');
+      } else {
+        // Реальный сбой (потеря соединения, плохой SQL, OOM) → error
+        this.logger.error({ text, duration, err }, 'Query error');
+      }
       throw err;
     }
   }
