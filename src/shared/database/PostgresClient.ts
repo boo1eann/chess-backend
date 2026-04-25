@@ -2,6 +2,7 @@ import { type DatabaseConfig, getDatabaseConfig } from '@/config/database.config
 import { Pool, type PoolClient, type QueryResult, type QueryResultRow } from 'pg';
 import type { Logger } from 'pino';
 import { isPgError } from '../errors/postgres';
+import type { Queryable } from './types';
 
 export class PostgresClient {
   private pool: Pool;
@@ -49,6 +50,25 @@ export class PostgresClient {
         this.logger.error({ text, duration, err }, 'Query error');
       }
       throw err;
+    }
+  }
+
+  async transaction<T>(fn: (tx: Queryable) => Promise<T>): Promise<T> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await fn(client);
+      await client.query('COMMIT');
+      return result;
+    } catch (err) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackErr) {
+        this.logger.error({ err: rollbackErr }, 'ROLLBACK failed');
+      }
+      throw err;
+    } finally {
+      client.release();
     }
   }
 

@@ -3,6 +3,7 @@ import { User } from './domain/user.entity';
 import type { CreateUserInput } from './user.types';
 import { isUniqueViolation } from '@/shared/errors/postgres';
 import { AuthError } from '@/shared/errors/AppError';
+import type { Queryable } from '@/shared/database/types';
 
 export class UserRepository {
   constructor(private readonly db: PostgresClient) {}
@@ -20,13 +21,14 @@ export class UserRepository {
   }
 
   // Принимаем НЕ entity, а данные
-  async create(data: CreateUserInput): Promise<User> {
+  async create(data: CreateUserInput & { id?: string }, executor?: Queryable): Promise<User> {
+    const exec = executor ?? this.db;
     try {
-      const result = await this.db.query(
-        `INSERT INTO users (email, username, password_hash)
-     VALUES ($1, $2, $3)
-     RETURNING *`,
-        [data.email, data.username, data.passwordHash]
+      const result = await exec.query(
+        `INSERT INTO users (id, email, username, password_hash)
+     		 VALUES (COALESCE($1, uuid_generate_v4()), $2, $3, $4)
+     		 RETURNING *`,
+        [data.id ?? null, data.email, data.username, data.passwordHash]
       );
 
       return User.fromDb(result.rows[0]);

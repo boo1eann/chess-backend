@@ -29,38 +29,49 @@ export class AuthService {
       this.userRepo.findByUsername(input.username),
     ]);
 
-    if (existingEmail) {
-      throw new AuthError('AUTH_EMAIL_TAKEN', { context: ctx });
-    }
-
-    if (existingUsername) {
+    if (existingEmail) throw new AuthError('AUTH_EMAIL_TAKEN', { context: ctx });
+    if (existingUsername)
       throw new AuthError('AUTH_USERNAME_TAKEN', {
         context: ctx,
       });
-    }
 
     const passwordHash = await hashPassword(input.password);
 
-    const user = await this.userRepo.create({
-      email: input.email,
-      username: input.username,
-      passwordHash,
-    });
-
+    const userId = crypto.randomUUID();
     const jti = crypto.randomUUID();
     const familyId = crypto.randomUUID();
 
-    const accessToken = signAccessToken({ sub: user.id, username: user.username });
-    const refreshToken = signRefreshToken({ sub: user.id, jti });
+    const accessToken = signAccessToken({ sub: userId, username: input.username });
+    const refreshToken = signRefreshToken({ sub: userId, jti });
+    const tokenHash = hashToken(refreshToken);
 
-    await this.authRepo.saveRefreshToken({
-      userId: user.id,
-      jti,
-      tokenHash: hashToken(refreshToken),
-      familyId,
-      userAgent: meta.userAgent,
-      ip: meta.ip,
-      expiresAt: new Date(Date.now() + parseTtl(config.jwt.refreshExpiresIn)),
+    const expiresAt = new Date(Date.now() + parseTtl(config.jwt.refreshExpiresIn));
+
+    const user = await this.db.transaction(async (tx) => {
+      const newUser = await this.userRepo.create(
+        {
+          id: userId,
+          email: input.email,
+          username: input.username,
+          passwordHash,
+        },
+        tx
+      );
+
+      await this.authRepo.saveRefreshToken(
+        {
+          userId,
+          jti,
+          tokenHash,
+          familyId,
+          userAgent: meta.userAgent,
+          ip: meta.ip,
+          expiresAt,
+        },
+        tx
+      );
+
+      return newUser;
     });
 
     return {

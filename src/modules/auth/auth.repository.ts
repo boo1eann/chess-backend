@@ -1,18 +1,23 @@
 import type { PostgresClient } from '@/shared/database/PostgresClient';
+import type { Queryable } from '@/shared/database/types';
 
 export class AuthRepository {
   constructor(private readonly db: PostgresClient) {}
 
-  async saveRefreshToken(input: {
-    userId: string;
-    jti: string;
-    tokenHash: string;
-    familyId: string;
-    userAgent: string | null;
-    ip: string | null;
-    expiresAt: Date;
-  }): Promise<void> {
-    await this.db.query(
+  async saveRefreshToken(
+    input: {
+      userId: string;
+      jti: string;
+      tokenHash: string;
+      familyId: string;
+      userAgent: string | null;
+      ip: string | null;
+      expiresAt: Date;
+    },
+    executor?: Queryable
+  ): Promise<void> {
+    const exec = executor ?? this.db;
+    await exec.query(
       `INSERT INTO refresh_tokens (
       user_id,
       token_hash,
