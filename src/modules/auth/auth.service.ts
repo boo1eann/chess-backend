@@ -38,13 +38,12 @@ export class AuthService {
     const passwordHash = await hashPassword(input.password);
 
     const userId = crypto.randomUUID();
-    const jti = crypto.randomUUID();
+    const tokenId = crypto.randomUUID();
     const familyId = crypto.randomUUID();
 
     const accessToken = signAccessToken({ sub: userId, username: input.username });
-    const refreshToken = signRefreshToken({ sub: userId, jti });
+    const refreshToken = signRefreshToken({ sub: userId, jti: tokenId });
     const tokenHash = hashToken(refreshToken);
-
     const expiresAt = new Date(Date.now() + parseTtl(config.jwt.refreshExpiresIn));
 
     const user = await this.db.transaction(async (tx) => {
@@ -60,8 +59,8 @@ export class AuthService {
 
       await this.authRepo.saveRefreshToken(
         {
+          id: tokenId,
           userId,
-          jti,
           tokenHash,
           familyId,
           userAgent: meta.userAgent,

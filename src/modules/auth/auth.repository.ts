@@ -6,8 +6,8 @@ export class AuthRepository {
 
   async saveRefreshToken(
     input: {
+      id: string;
       userId: string;
-      jti: string;
       tokenHash: string;
       familyId: string;
       userAgent: string | null;
@@ -19,6 +19,7 @@ export class AuthRepository {
     const exec = executor ?? this.db;
     await exec.query(
       `INSERT INTO refresh_tokens (
+			id,
       user_id,
       token_hash,
       family_id,
@@ -26,8 +27,16 @@ export class AuthRepository {
       ip_address,
       expires_at
     )
-    VALUES ($1, $2, $3, $4, $5, $6)`,
-      [input.userId, input.tokenHash, input.familyId, input.userAgent, input.ip, input.expiresAt]
+    VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        input.id,
+        input.userId,
+        input.tokenHash,
+        input.familyId,
+        input.userAgent,
+        input.ip,
+        input.expiresAt,
+      ]
     );
   }
 }
