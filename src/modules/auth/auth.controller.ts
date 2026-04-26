@@ -1,13 +1,13 @@
 import { asyncHandler } from '@/shared/utils/async-handler';
 import type { AuthService } from './auth.service';
+import { extractRequestMeta } from './utils/extract-meta';
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   register = asyncHandler(async (req, res) => {
-    const userAgent = req.headers['user-agent'] ?? null;
-    const ip = req.ip ?? null;
-    const result = await this.authService.register(req.body, { userAgent, ip });
+    const meta = extractRequestMeta(req);
+    const result = await this.authService.register(req.body, meta);
 
     res.status(201).json({
       success: true,
@@ -16,9 +16,8 @@ export class AuthController {
   });
 
   login = asyncHandler(async (req, res) => {
-    const userAgent = req.headers['user-agent'] ?? null;
-    const ip = req.ip ?? null;
-    const result = await this.authService.login(req.body, { userAgent, ip });
+    const meta = extractRequestMeta(req);
+    const result = await this.authService.login(req.body, meta);
 
     res.status(200).json({
       success: true,

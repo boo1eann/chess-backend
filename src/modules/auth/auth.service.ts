@@ -11,6 +11,8 @@ import { AuthRepository } from './auth.repository';
 import { hashToken, parseTtl } from './token.utils';
 import { config } from '@/config';
 import { DUMMY_HASH } from '@/shared/auth/dummy-hash';
+import type { RequestMeta } from './types/request-meta';
+import { parseUserAgent } from '@/shared/auth/parse-user-agent';
 
 export class AuthService {
   private readonly userRepo: UserRepository;
@@ -21,7 +23,7 @@ export class AuthService {
     this.authRepo = new AuthRepository(db);
   }
 
-  async register(input: RegisterInput, meta: { userAgent: string | null; ip: string | null }) {
+  async register(input: RegisterInput, meta: RequestMeta) {
     const ctx = getRequestContext();
 
     // check duplicates
@@ -47,6 +49,8 @@ export class AuthService {
     const tokenHash = hashToken(refreshToken);
     const expiresAt = new Date(Date.now() + parseTtl(config.jwt.refreshExpiresIn));
 
+    const { deviceName, deviceType } = this.resolveDeviceInfo(meta);
+
     const user = await this.db.transaction(async (tx) => {
       const newUser = await this.userRepo.create(
         {
@@ -64,6 +68,8 @@ export class AuthService {
           userId,
           tokenHash,
           familyId,
+          deviceName,
+          deviceType,
           userAgent: meta.userAgent,
           ip: meta.ip,
           expiresAt,
@@ -83,7 +89,7 @@ export class AuthService {
     };
   }
 
-  async login(input: LoginInput, meta: { userAgent: string | null; ip: string | null }) {
+  async login(input: LoginInput, meta: RequestMeta) {
     const user = await this.userRepo.findByLogin(input.login);
 
     if (!user) {
@@ -125,6 +131,8 @@ export class AuthService {
     const tokenHash = hashToken(refreshToken);
     const expiresAt = new Date(Date.now() + parseTtl(config.jwt.refreshExpiresIn));
 
+    const { deviceName, deviceType } = this.resolveDeviceInfo(meta);
+
     // Атомарно: апдейт юзера + INSERT refresh_token
     user.recordLogin(meta.ip ?? '');
 
@@ -136,6 +144,8 @@ export class AuthService {
           userId: user.id,
           tokenHash,
           familyId,
+          deviceName,
+          deviceType,
           userAgent: meta.userAgent,
           ip: meta.ip,
           expiresAt,
@@ -147,6 +157,17 @@ export class AuthService {
     return {
       user: toPublicUser(user),
       tokens: { accessToken, refreshToken },
+    };
+  }
+
+  private resolveDeviceInfo(meta: RequestMeta): {
+    deviceName: string;
+    deviceType: string;
+  } {
+    const parsed = parseUserAgent(meta.userAgent);
+    return {
+      deviceName: meta.deviceName ?? parsed.deviceName,
+      deviceType: meta.deviceType ?? parsed.deviceType,
     };
   }
 }

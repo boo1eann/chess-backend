@@ -21,6 +21,7 @@ export const ErrorCode = {
   AUTH_UNAUTHORIZED: 'AUTH_UNAUTHORIZED',
   AUTH_ACCOUNT_BANNED: 'AUTH_ACCOUNT_BANNED',
   AUTH_ACCOUNT_DISABLED: 'AUTH_ACCOUNT_DISABLED',
+  AUTH_USER_NOT_FOUND: 'AUTH_USER_NOT_FOUND',
 } as const;
 
 export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -147,6 +148,12 @@ export const ERROR_DEFAULTS: Record<
     statusCode: 401,
     severity: 'low',
     message: 'Account disabled',
+    retryable: false,
+  },
+  AUTH_USER_NOT_FOUND: {
+    statusCode: 404,
+    severity: 'low',
+    message: 'User not found',
     retryable: false,
   },
 };
