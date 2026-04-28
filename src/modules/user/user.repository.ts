@@ -1,5 +1,5 @@
 import type { PostgresClient } from '@/shared/database/PostgresClient';
-import { User } from './domain/user.entity';
+import { User, type UserRow } from './domain/user.entity';
 import type { CreateUserInput } from './user.types';
 import { isUniqueViolation } from '@/shared/errors/postgres';
 import { AuthError } from '@/shared/errors/AppError';
@@ -69,23 +69,31 @@ export class UserRepository {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const result = await this.db.query<User>('SELECT * FROM users WHERE email = $1', [email]);
+    const result = await this.db.query<UserRow>('SELECT * FROM users WHERE email = $1', [email]);
     const row = result.rows[0];
     return row ? User.fromDb(row) : null;
   }
 
   async findByUsername(username: string): Promise<User | null> {
-    const result = await this.db.query<User>('SELECT * FROM users WHERE username = $1', [username]);
+    const result = await this.db.query<UserRow>('SELECT * FROM users WHERE username = $1', [
+      username,
+    ]);
     const row = result.rows[0];
     return row ? User.fromDb(row) : null;
   }
 
   async findByLogin(login: string, executor?: Queryable): Promise<User | null> {
     const exec = executor ?? this.db;
-    const result = await exec.query<User>(
+    const result = await exec.query<UserRow>(
       `SELECT * FROM users WHERE email = $1 OR username = $1 LIMIT 1`,
       [login]
     );
     return result.rows[0] ? User.fromDb(result.rows[0]) : null;
+  }
+
+  async findById(id: string): Promise<User | null> {
+    const result = await this.db.query<UserRow>('SELECT * FROM users WHERE id = $1', [id]);
+    const row = result.rows[0];
+    return row ? User.fromDb(row) : null;
   }
 }

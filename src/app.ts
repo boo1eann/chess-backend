@@ -23,7 +23,7 @@ export function createApp(logger: Logger, db: PostgresClient): Application {
   //   }
   // });
 
-  app.use(`${config.apiPrefix}/auth`, createAuthRouter(db));
+  app.use(`${config.apiPrefix}/auth`, createAuthRouter(db, logger));
 
   app.use(errorHandler());
 

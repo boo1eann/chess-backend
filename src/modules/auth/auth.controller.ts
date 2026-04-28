@@ -24,4 +24,14 @@ export class AuthController {
       data: result,
     });
   });
+
+  refresh = asyncHandler(async (req, res) => {
+    const meta = extractRequestMeta(req);
+    const result = await this.authService.refresh(req.body.refreshToken, meta);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  });
 }

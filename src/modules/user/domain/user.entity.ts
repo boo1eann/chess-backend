@@ -1,5 +1,24 @@
 import { verifyPassword } from '@/shared/security/password';
 
+export interface UserRow {
+  id: string;
+  email: string;
+  username: string;
+  password_hash: string | null;
+  is_email_verified: boolean;
+  is_active: boolean;
+  is_banned: boolean;
+  ban_reason: string | null;
+  google_id: string | null;
+  failed_login_attemps: number;
+  locked_until: Date | null;
+  password_changed_at: Date | null;
+  last_login_at: Date | null;
+  last_login_ip: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export class User {
   constructor(
     public readonly id: string,
@@ -82,7 +101,7 @@ export class User {
     return await verifyPassword(this.passwordHash, plainPassword);
   }
 
-  static fromDb(row: any): User {
+  static fromDb(row: UserRow): User {
     return new User(
       row.id,
       row.email,
