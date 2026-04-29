@@ -252,6 +252,34 @@ export class AuthService {
     };
   }
 
+  async logout(rawToken: string | null): Promise<void> {
+    if (!rawToken) return;
+
+    try {
+      const payload = verifyRefreshToken(rawToken);
+      const record = await this.authRepo.findById(payload.jti);
+      if (!record) return;
+
+      if (record.userId !== payload.sub) return;
+      if (record.tokenHash !== hashToken(rawToken)) return;
+
+      if (record.isRevoked) return;
+
+      const revokedCount = await this.authRepo.revokeFamily(
+        record.familyId,
+        record.userId,
+        'logout'
+      );
+
+      this.logger.info(
+        { userId: record.userId, familyId: record.familyId, revokedCount },
+        'User logger out'
+      );
+    } catch (err) {
+      this.logger.debug({ err }, 'Logout with invalid token - proceeding silently');
+    }
+  }
+
   private resolveDeviceInfo(meta: RequestMeta): {
     deviceName: string;
     deviceType: string;

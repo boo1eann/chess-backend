@@ -2,7 +2,7 @@ import type { PostgresClient } from '@/shared/database/PostgresClient';
 import { Router } from 'express';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { LoginInputSchema, RegisterInputSchema } from './auth.validator';
+import { LoginInputSchema, LogoutInputSchema, RegisterInputSchema } from './auth.validator';
 import { validate } from '@/shared/middlewares/validate.middleware';
 import type { Logger } from 'pino';
 
@@ -17,6 +17,7 @@ export function createAuthRouter(db: PostgresClient, logger: Logger): Router {
   router.post('/register', validate(RegisterInputSchema), controller.register);
   router.post('/login', validate(LoginInputSchema), controller.login);
   router.post('/refresh', controller.refresh);
+  router.post('/logout', validate(LogoutInputSchema), controller.logout);
 
   return router;
 }

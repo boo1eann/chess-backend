@@ -26,5 +26,12 @@ export const LoginInputSchema = z.object({
   }),
 });
 
+export const LogoutInputSchema = z.object({
+  body: z.object({
+    refreshToken: z.string().min(1).max(2000).optional(),
+  }),
+});
+
 export type RegisterInput = Omit<z.infer<typeof RegisterInputSchema>['body'], 'passwordConfirm'>;
 export type LoginInput = z.infer<typeof LoginInputSchema>['body'];
+export type LogoutInput = z.infer<typeof LogoutInputSchema>['body'];

@@ -34,4 +34,10 @@ export class AuthController {
       data: result,
     });
   });
+
+  logout = asyncHandler(async (req, res) => {
+    const { refreshToken } = req.body as { refreshToken?: string };
+    await this.authService.logout(refreshToken ?? null);
+    res.status(204).send();
+  });
 }
