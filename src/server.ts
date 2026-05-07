@@ -4,6 +4,7 @@ import { config } from './config';
 import { initLogger } from './shared/lib/logger';
 import { PostgresClient } from './shared/database/PostgresClient';
 import { loggerConfig } from './config/logger.config';
+import { createWebSocketGateway } from './modules/realtime/websocket.gateway';
 
 const logger = initLogger(loggerConfig);
 
@@ -13,6 +14,10 @@ async function bootstrap(): Promise<void> {
 
   const app = createApp(logger, db);
   const httpServer = http.createServer(app);
+
+  const { publisher } = createWebSocketGateway(httpServer, logger);
+
+  void publisher;
 
   httpServer.listen(config.port, () => {
     logger.info(`Server ready [${config.env}] http://localhost:${config.port}`);

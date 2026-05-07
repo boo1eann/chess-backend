@@ -31,6 +31,19 @@ export function signRefreshToken(payload: RefreshPayload) {
   });
 }
 
+export function verifyAccessToken(token: string): AccessPayload {
+  try {
+    const decoded = jwt.verify(token, config.jwt.secret) as AccessPayload;
+    if (decoded.type !== 'access') {
+      throw new AuthError('AUTH_UNAUTHORIZED', { message: 'Invalid token type' });
+    }
+    return decoded;
+  } catch (err) {
+    if (err instanceof AuthError) throw err;
+    throw new AuthError('AUTH_UNAUTHORIZED', { message: 'Invalid or expired access token' });
+  }
+}
+
 export function verifyRefreshToken(token: string): RefreshPayload {
   try {
     const decoded = jwt.verify(token, config.jwt.refreshSecret) as RefreshPayload;

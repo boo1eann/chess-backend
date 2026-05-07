@@ -49,4 +49,7 @@ export const config = {
     refreshSecret: required('JWT_REFRESH_SECRET'),
     refreshExpiresIn: optional('JWT_REFRESH_EXPIRES_IN', '30d'),
   },
+  cors: {
+    origin: optional('CORS_ORIGIN', '*'),
+  },
 } as const;
