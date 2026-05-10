@@ -81,6 +81,27 @@ export class Game {
     return { ok: true, snapshot: this.toSnapshot() };
   }
 
+  resign(userId: string, reason: 'manual' | 'disconnect' = 'manual'): MoveResult {
+    if (this.isOver()) return { ok: false, reason: 'game_over' };
+
+    const color = this.colorOf(userId);
+    if (!color) return { ok: false, reason: 'not_a_player' };
+
+    this._status = 'resigned';
+    this._result = color === 'white' ? '0-1' : '1-0';
+    this._endReason =
+      reason === 'disconnect'
+        ? color === 'white'
+          ? 'white_disconnected'
+          : 'black_disconnected'
+        : color === 'white'
+          ? 'white_resigned'
+          : 'black_resigned';
+    this._endedAt = new Date();
+
+    return { ok: true, snapshot: this.toSnapshot() };
+  }
+
   private detectTermination(): void {
     if (this.chess.isCheckmate()) {
       this._status = 'checkmate';
